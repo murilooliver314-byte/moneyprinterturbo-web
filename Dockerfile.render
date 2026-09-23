@@ -1,0 +1,20 @@
+FROM python:3.11-slim-bullseye
+
+WORKDIR /MoneyPrinterTurbo
+ENV PYTHONPATH=/MoneyPrinterTurbo
+ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bash ffmpeg nginx apache2-utils gettext-base \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --retries 3 --timeout 60 -r requirements.txt
+
+COPY . .
+COPY moneyprinterturbo.nginx.conf.template /etc/nginx/templates/moneyprinterturbo.conf.template
+COPY start_secure.sh /usr/local/bin/start_secure.sh
+RUN chmod +x /usr/local/bin/start_secure.sh
+
+EXPOSE 10000
+CMD ["/usr/local/bin/start_secure.sh"]
